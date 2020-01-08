@@ -8,11 +8,13 @@ from selenium import webdriver
 from lxml import etree
 from selenium.webdriver.common.keys import Keys
 from multiprocessing import Manager, Pool
+import getpass
 
 
 class MajorGiftGui:
 
-    def __init__(self, q):
+    def __init__(self, q, pool_num):
+        self.pool_num = pool_num
         self.driver = None
         self.signal = threading.Event()
         self.driver_bank = []
@@ -133,7 +135,7 @@ class MajorGiftGui:
                 'value': ck.get('value')
             })
         if self.qu.empty():
-            for i in range(4):
+            for i in range(self.pool_num - 1):
                 self.qu.put([self.cookies_bank, self.room_id.get(), self.gift_order.get(), self.gift_num.get()])
         self.set_tips('获取登录信息成功,请测试')
 
@@ -446,19 +448,21 @@ if __name__ == '__main__':
         print('请放置password文件至程序同级目录')
         quit()
     while True:
-        pw = input('请输入密码：')
+        pw = getpass.getpass('请输入密码：')
         pw = '{}cms'.format(pw)
         md5 = hashlib.md5()
         md5.update(pw.encode('utf-8'))
         hash_pw = md5.hexdigest()
         if hash_pw == really_pw:
             break
+    multi_num = input('请输入多开数，要求为2的倍数:')
+    multi_num = int(int(multi_num)/2)
     # test id
     # main
-    p = Pool(6)
-    que = Manager().Queue(6)
-    p.apply_async(MajorGiftGui, args=(que,))
-    for i in range(4):
+    p = Pool(multi_num + 1)
+    que = Manager().Queue(multi_num + 1)
+    p.apply_async(MajorGiftGui, args=(que, multi_num))
+    for i in range(multi_num - 1):
         p.apply_async(SubGiftGui, args=(que, ))
     p.apply_async(ConGui, args=(que, ))
     p.close()
