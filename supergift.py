@@ -22,7 +22,7 @@ class MajorGiftGui:
         self.driver_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chromedriver.exe')
         self.root = Tk()
         self.root.geometry('460x240')
-        self.root.title('刷礼物主程序')
+        self.root.title('主程序名字长度不一样')
         self.is_ready = False
         self.qu = q
         self.driver_list = [[], [], [], [], ]
@@ -285,7 +285,7 @@ class MajorGiftGui:
     # ready for send gift
     def ready_go(self):
         # make sure qu is empty
-        while True:
+        while 1:
             if not self.qu.empty():
                 self.qu.get()
             else:
@@ -302,7 +302,7 @@ class MajorGiftGui:
 
     def wait_signal(self, driver):
         send_btn = driver.find_element_by_xpath('//*[@id="LF-chat-gift"]/div/div/div/div[2]/div[3]/a')
-        while True:
+        while 1:
             while not self.qu.empty():
                 # self.signal.wait()
                 send_btn.click()
@@ -330,7 +330,7 @@ class MajorGiftGui:
         star = driver.find_element_by_xpath(
                 '/html/body/div[1]/div[2]/div[3]/div[3]/div/div/div/div[2]/div[1]/ul/li[2]'
             )
-        while True:
+        while 1:
             star.click()
             self.signal.wait()
             print(1)
@@ -404,7 +404,7 @@ class SubGiftGui(MajorGiftGui):
         self.driver_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chromedriver.exe')
         self.root = Tk()
         self.root.geometry('460x240')
-        self.root.title('刷礼物副进程')
+        self.root.title('副进程')
         self.is_ready = False
         self.qu = q
         self.driver_list = [[], [], [], [], ]
@@ -441,6 +441,9 @@ class SubGiftGui(MajorGiftGui):
         self.root.mainloop()
 
     def get_login_msg(self):
+        if self.qu.empty():
+            self.set_tips('没有登录信息，请先完成登录')
+            return None
         if self.cookies_bank:
             return None
         else:
@@ -453,23 +456,66 @@ class SubGiftGui(MajorGiftGui):
 
 class ConGui(MajorGiftGui):
 
-    def __init__(self, q):
+    def __init__(self, q, main_id):
+        self.signal = threading.Event()
         self.root = Tk()
-        self.root.geometry('300x150')
-        self.root.title('控制台')
+        self.root.geometry('400x200')
+        self.root.title('控制台大小不一样')
         self.qu = q
+        self.main_id = main_id
         lb1 = Label(self.root, text='完成主程序以及副程序的准备后，\n将此程序置顶')
         lb1.place(relx=0.1, rely=0.01, relwidth=0.8, relheight=0.2)
-        btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
-        btn7.place(relx=0.1, rely=0.3, relwidth=0.4, relheight=0.4)
-        btn8 = Button(self.root, text='暂停→', command=self.stop_signal)
-        btn8.place(relx=0.55, rely=0.3, relwidth=0.4, relheight=0.4)
+        # btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
+        btn7 = Label(self.root, text='开始/继续←')
+        btn7.place(relx=0.1, rely=0.3, relwidth=0.4, relheight=0.2)
+        # btn8 = Button(self.root, text='暂停→', command=self.stop_signal)
+        btn8 = Label(self.root, text='暂停→')
+        btn8.place(relx=0.55, rely=0.3, relwidth=0.4, relheight=0.2)
         btn_convenience = Button(self.root, text='快捷键测试')
-        btn_convenience.bind_all('<KeyPress>', self.event_handler)
+        btn_convenience.bind_all('<KeyPress>', self.event_handler, add=True)
         btn_convenience.place()
+        lb7 = Label(self.root, text='提示')
+        lb7.place(relx=0.02, rely=0.55, relwidth=0.1, relheight=0.15)
         self.tip = Entry(self.root)
-        self.tip.place(relx=0.13, rely=0.8, relwidth=0.8, relheight=0.15)
+        self.tip.place(relx=0.13, rely=0.55, relwidth=0.8, relheight=0.15)
+        # btn_start = Button(self.root, text='强制置顶功能开启', command=self.start_top)
+        # btn_start.place(relx=0.1, rely=0.75, relwidth=0.15, relheight=0.15)
+        # btn_end = Button(self.root, text='暂停/继续强制置顶', command=self.alert_signal)
+        # btn_end.place(relx=0.3, rely=0.75, relwidth=0.15, relheight=0.15)
+        btn_quit = Button(self.root, text='一键推出', command=self.quit_all)
+        btn_quit.place(relx=0.8, rely=0.75, relwidth=0.15, relheight=0.15)
+        # self.root.wm_attributes('-topmost', 1)
         self.root.mainloop()
+
+    def quit_all(self):
+        command = 'taskkill /F /IM chrome.exe'
+        os.system(command)
+        command_kill = 'taskkill /pid {}  -t  -f'.format(self.main_id)
+        os.system(command_kill)
+
+    # def start_top(self):
+    #     self.signal.set()
+    #     task_bank = [threading.Thread(target=self.set_top), ]
+    #     for task in task_bank:
+    #         task.start()
+    #     self.set_tips('窗口强制置顶')
+    #
+    # def set_top(self):
+    #     while 1:
+    #         print(self.root.wm_focusmodel())
+    #         self.signal.wait()
+    #         if self.root.wm_focusmodel() != 'passive':
+    #             self.root.wm_focusmodel('passive')
+    #             print(2)
+    #         sleep(0.1)
+    #
+    # def alert_signal(self):
+    #     if self.signal.is_set():
+    #         self.signal.clear()
+    #         self.set_tips('窗口取消强制置顶')
+    #     else:
+    #         self.signal.set()
+    #         self.set_tips('窗口强制置顶')
 
 
 if __name__ == '__main__':
@@ -489,15 +535,16 @@ if __name__ == '__main__':
         hash_pw = md5.hexdigest()
         if hash_pw == really_pw:
             break
-    multi_num = input('请输入多开数，要求为2的倍数:')
-    multi_num = int(int(multi_num)/2)
+    multi_num = input('请输入进程数，推荐为cpu核数-1，进程数x每个进程网页数=多开数:')
+    multi_num = int(multi_num)
     # test id
     # main
+    main_pid = os.getpid()
     p = Pool(multi_num + 1)
     que = Manager().Queue(multi_num + 1)
     p.apply_async(MajorGiftGui, args=(que, multi_num))
     for i in range(multi_num - 1):
         p.apply_async(SubGiftGui, args=(que, ))
-    p.apply_async(ConGui, args=(que, ))
+    p.apply_async(ConGui, args=(que, main_pid, ))
     p.close()
     p.join()
