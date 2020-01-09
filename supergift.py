@@ -51,10 +51,10 @@ class MajorGiftGui:
         lb4.place(relx=0.01, rely=0.34, relwidth=0.22, relheight=0.1)
         self.gift_num = Entry(self.root)
         self.gift_num.place(relx=0.23, rely=0.34, relwidth=0.7, relheight=0.1)
-        # lb5 = Label(self.root, text='刷手账号')
-        # lb5.place(relx=0.01, rely=0.45, relwidth=0.2, relheight=0.1)
-        # self.user_id = Entry(self.root)
-        # self.user_id.place(relx=0.23, rely=0.45, relwidth=0.3, relheight=0.1)
+        lb5 = Button(self.root, text='浏览器开启数', command=self.set_driver_num)
+        lb5.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
+        self.driver_num = Entry(self.root)
+        self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
         # lb6 = Label(self.root, text='刷手密码')
         # lb6.place(relx=0.01, rely=0.56, relwidth=0.2, relheight=0.1)
         # self.password = Entry(self.root)
@@ -75,8 +75,8 @@ class MajorGiftGui:
         btn6.place(relx=0.28, rely=0.78, relwidth=0.2, relheight=0.1)
         # btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
         # btn7.place(relx=0.52, rely=0.78, relwidth=0.2, relheight=0.1)
-        # btn8 = Button(self.root, text='暂停→', command=self.stop_signal)
-        # btn8.place(relx=0.78, rely=0.78, relwidth=0.2, relheight=0.1)
+        btn8 = Button(self.root, text='退出一个浏览器', command=self.quit_one_driver)
+        btn8.place(relx=0.78, rely=0.78, relwidth=0.2, relheight=0.1)
         # btn_convenience = Button(self.root, text='快捷键测试')
         # btn_convenience.bind_all('<KeyPress>', self.event_handler)
         # btn_convenience.place()
@@ -99,6 +99,12 @@ class MajorGiftGui:
             self.tip.delete(0, END)
         self.tip.insert(END, tip)
 
+    # driver num
+    def set_driver_num(self):
+        if self.driver_num.get():
+            self.driver_num.delete(0, END)
+        self.driver_num.insert(END, len(self.driver_bank))
+
     def init_para(self):
         self.driver_bank = []
         # if self.thread_num.get():
@@ -115,7 +121,13 @@ class MajorGiftGui:
 
     # get login page
     def login(self):
-        self.driver = webdriver.Chrome(executable_path=self.driver_path)
+        options = webdriver.ChromeOptions()
+        # options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-sandbox')
+        # options.add_argument('blink-settings=imagesEnabled=false')
+        self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=options)
         self.driver.implicitly_wait(3)
         # login page
         self.driver.get(
@@ -173,6 +185,7 @@ class MajorGiftGui:
                 self.driver_bank.append(self.driver)
         else:
             self.set_tips('请输入房间号')
+        self.set_driver_num()
 
     @staticmethod
     def set_gift_num(driver):
@@ -196,7 +209,13 @@ class MajorGiftGui:
         if not self.cookies_bank:
             self.set_tips('请按完成登录,获取登录信息后再进行复制窗口')
             return None
-        driver = webdriver.Chrome(executable_path=self.driver_path)
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-sandbox')
+        options.add_argument('blink-settings=imagesEnabled=false')
+        driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=options)
         driver.get(
             'https://cnpassport.laifeng.com/mini_login.htm?lang=zh_cn&appName=youku&appEntrance=laifeng&styleType='
             'vertical&bizParams=&notLoadSsoView=true&notKeepLogin=false&isMobile=false&pid=20160918PLF000695&rnd='
@@ -229,6 +248,15 @@ class MajorGiftGui:
         except Exception:
             pass
         self.driver_bank.append(driver)
+        self.set_driver_num()
+
+    def quit_one_driver(self):
+        if len(self.driver_bank) == 0:
+            self.set_tips('无浏览器可退出！')
+        else:
+            self.driver_bank[-1].quit()
+            self.driver_bank.pop()
+            self.set_driver_num()
 
     def divide_driver(self):
         # divide task
@@ -394,12 +422,18 @@ class SubGiftGui(MajorGiftGui):
         lb4.place(relx=0.01, rely=0.34, relwidth=0.22, relheight=0.1)
         self.gift_num = Entry(self.root)
         self.gift_num.place(relx=0.23, rely=0.34, relwidth=0.7, relheight=0.1)
+        lb5 = Button(self.root, text='浏览器开启数', command=self.set_driver_num)
+        lb5.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
+        self.driver_num = Entry(self.root)
+        self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
         btn4 = Button(self.root, text='获得登录信息', command=self.get_login_msg)
-        btn4.place(relx=0.05, rely=0.5, relwidth=0.3, relheight=0.3)
+        btn4.place(relx=0.05, rely=0.6, relwidth=0.3, relheight=0.2)
         btn5 = Button(self.root, text='复制窗口', command=self.anchor_room)
-        btn5.place(relx=0.37, rely=0.5, relwidth=0.3, relheight=0.3)
+        btn5.place(relx=0.37, rely=0.6, relwidth=0.3, relheight=0.2)
         btn6 = Button(self.root, text='准备', command=self.ready_go)
-        btn6.place(relx=0.68, rely=0.5, relwidth=0.3, relheight=0.3)
+        btn6.place(relx=0.68, rely=0.6, relwidth=0.3, relheight=0.2)
+        btn8 = Button(self.root, text='退出一个浏览器', command=self.quit_one_driver)
+        btn8.place(relx=0.01, rely=0.01, relwidth=0.2, relheight=0.1)
         lb7 = Label(self.root, text='提示')
         lb7.place(relx=0.02, rely=0.89, relwidth=0.1, relheight=0.1)
         self.tip = Entry(self.root)
