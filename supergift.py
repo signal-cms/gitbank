@@ -51,7 +51,7 @@ class MajorGiftGui:
         lb4.place(relx=0.01, rely=0.34, relwidth=0.22, relheight=0.1)
         self.gift_num = Entry(self.root)
         self.gift_num.place(relx=0.23, rely=0.34, relwidth=0.7, relheight=0.1)
-        lb5 = Button(self.root, text='浏览器开启数', command=self.set_driver_num)
+        lb5 = Button(self.root, text='浏览器开启数', activebackground='blue', command=self.set_driver_num)
         lb5.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
         self.driver_num = Entry(self.root)
         self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
@@ -61,21 +61,21 @@ class MajorGiftGui:
         # self.password.place(relx=0.23, rely=0.56, relwidth=0.3, relheight=0.1)
         # btn9 = Button(self.root, text='一键退出', command=self.quit_driver)
         # btn9.place(relx=0.6, rely=0.2, relwidth=0.3, relheight=0.3)
-        btn1 = Button(self.root, text='初始化', command=self.init_para)
+        btn1 = Button(self.root, text='初始化', activebackground='blue', command=self.init_para)
         btn1.place(relx=0.0325, rely=0.67, relwidth=0.2, relheight=0.1)
-        btn2 = Button(self.root, text='登录界面', command=self.login)
+        btn2 = Button(self.root, text='登录界面', activebackground='blue', command=self.login)
         btn2.place(relx=0.28, rely=0.67, relwidth=0.2, relheight=0.1)
-        btn3 = Button(self.root, text='完成登录', command=self.get_cookie)
+        btn3 = Button(self.root, text='完成登录', activebackground='blue', command=self.get_cookie)
         btn3.place(relx=0.52, rely=0.67, relwidth=0.2, relheight=0.1)
-        btn4 = Button(self.root, text='测试', command=self.gift_test)
+        btn4 = Button(self.root, text='测试', activebackground='blue', command=self.gift_test)
         btn4.place(relx=0.78, rely=0.67, relwidth=0.2, relheight=0.1)
-        btn5 = Button(self.root, text='复制窗口', command=self.anchor_room)
+        btn5 = Button(self.root, text='复制窗口', activebackground='blue', command=self.anchor_room)
         btn5.place(relx=0.0325, rely=0.78, relwidth=0.2, relheight=0.1)
-        btn6 = Button(self.root, text='准备', command=self.ready_go)
+        btn6 = Button(self.root, text='准备', activebackground='blue', command=self.ready_go)
         btn6.place(relx=0.28, rely=0.78, relwidth=0.2, relheight=0.1)
         # btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
         # btn7.place(relx=0.52, rely=0.78, relwidth=0.2, relheight=0.1)
-        btn8 = Button(self.root, text='退出一个浏览器', command=self.quit_one_driver)
+        btn8 = Button(self.root, text='退出一个浏览器', activebackground='blue', command=self.quit_one_driver)
         btn8.place(relx=0.78, rely=0.78, relwidth=0.2, relheight=0.1)
         # btn_convenience = Button(self.root, text='快捷键测试')
         # btn_convenience.bind_all('<KeyPress>', self.event_handler)
@@ -361,7 +361,7 @@ class MajorGiftGui:
                     self.gift_order.get()
                 )
             )[0]
-            self.set_tips('登录成功，礼物为：{}，请检查是否选中该礼物'.format(gift_name))
+            self.set_tips('所选礼物为：{}，若无误，请在副程序获取登录信息'.format(gift_name))
             return False
         else:
             return True
@@ -422,17 +422,17 @@ class SubGiftGui(MajorGiftGui):
         lb4.place(relx=0.01, rely=0.34, relwidth=0.22, relheight=0.1)
         self.gift_num = Entry(self.root)
         self.gift_num.place(relx=0.23, rely=0.34, relwidth=0.7, relheight=0.1)
-        lb5 = Button(self.root, text='浏览器开启数', command=self.set_driver_num)
+        lb5 = Button(self.root, text='浏览器开启数', activebackground='blue', command=self.set_driver_num)
         lb5.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
         self.driver_num = Entry(self.root)
         self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
-        btn4 = Button(self.root, text='获得登录信息', command=self.get_login_msg)
+        btn4 = Button(self.root, text='获得登录信息', activebackground='blue', command=self.get_login_msg)
         btn4.place(relx=0.05, rely=0.6, relwidth=0.3, relheight=0.2)
-        btn5 = Button(self.root, text='复制窗口', command=self.anchor_room)
+        btn5 = Button(self.root, text='复制窗口', activebackground='blue', command=self.anchor_room)
         btn5.place(relx=0.37, rely=0.6, relwidth=0.3, relheight=0.2)
-        btn6 = Button(self.root, text='准备', command=self.ready_go)
+        btn6 = Button(self.root, text='准备', activebackground='blue', command=self.ready_go)
         btn6.place(relx=0.68, rely=0.6, relwidth=0.3, relheight=0.2)
-        btn8 = Button(self.root, text='退出一个浏览器', command=self.quit_one_driver)
+        btn8 = Button(self.root, text='退出一个浏览器', activebackground='blue', command=self.quit_one_driver)
         btn8.place(relx=0.01, rely=0.01, relwidth=0.2, relheight=0.1)
         lb7 = Label(self.root, text='提示')
         lb7.place(relx=0.02, rely=0.89, relwidth=0.1, relheight=0.1)
@@ -441,17 +441,19 @@ class SubGiftGui(MajorGiftGui):
         self.root.mainloop()
 
     def get_login_msg(self):
-        if self.qu.empty():
-            self.set_tips('没有登录信息，请先完成登录')
-            return None
         if self.cookies_bank:
+            self.set_tips('已获取登录信息，请不要重复点击')
             return None
         else:
+            if self.qu.empty():
+                self.set_tips('没有登录信息，请先完成登录')
+                return None
             msg = self.qu.get()
         self.cookies_bank = msg[0]
         self.room_id.insert(END, msg[1])
         self.gift_order.insert(END, msg[2])
         self.gift_num.insert(END, msg[3])
+        self.set_tips('成功获取登录信息，可进行复制窗口')
 
 
 class ConGui(MajorGiftGui):
@@ -518,23 +520,27 @@ class ConGui(MajorGiftGui):
     #         self.set_tips('窗口强制置顶')
 
 
+def sub_program():
+    pass
+
+
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    hash_pw = ''
-    try:
-        with open('./password', 'r') as fh:
-            really_pw = fh.read()
-    except:
-        print('请放置password文件至程序同级目录')
-        quit()
-    while True:
-        pw = getpass.getpass('请输入密码：')
-        pw = '{}cms'.format(pw)
-        md5 = hashlib.md5()
-        md5.update(pw.encode('utf-8'))
-        hash_pw = md5.hexdigest()
-        if hash_pw == really_pw:
-            break
+    # hash_pw = ''
+    # try:
+    #     with open('./password', 'r') as fh:
+    #         really_pw = fh.read()
+    # except:
+    #     print('请放置password文件至程序同级目录')
+    #     quit()
+    # while True:
+    #     pw = getpass.getpass('请输入密码：')
+    #     pw = '{}cms'.format(pw)
+    #     md5 = hashlib.md5()
+    #     md5.update(pw.encode('utf-8'))
+    #     hash_pw = md5.hexdigest()
+    #     if hash_pw == really_pw:
+    #         break
     multi_num = input('请输入进程数，推荐为cpu核数-1，进程数x每个进程网页数=多开数:')
     multi_num = int(multi_num)
     # test id
