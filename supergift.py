@@ -28,6 +28,11 @@ class MajorGiftGui:
         self.root.geometry('460x240')
         self.root.title('主程序名字长度不一样')
         self.is_ready = False
+        self.is_login_page = False
+        self.is_login = False
+        self.is_test = False
+        self.is_copy = False
+        self.is_check_browser = False
         self.qu = dq
         self.sq = sq
         self.other_driver_num = 0
@@ -106,6 +111,10 @@ class MajorGiftGui:
 
     # driver num
     def set_driver_num(self):
+        if not (self.is_login_page and self.is_login and self.is_test and self.is_copy):
+            return None
+        if self.is_check_browser:
+            return None
         if self.is_ready:
             self.set_tips('已经入准备状态,无法获取信息')
             return None
@@ -117,13 +126,15 @@ class MajorGiftGui:
                 driver_num_list.append(self.qu.get())
             driver_num_list.append(len(self.driver_bank))
             driver_num_list.append(self.other_driver_num)
+            print('dnl', driver_num_list)
             ttl_driver_num = reduce(lambda x, y: x + y, driver_num_list)
         if self.driver_num.get():
             self.driver_num.delete(0, END)
         if ttl_driver_num < self.need_driver_num:
             tip = '已开启浏览器数：{0}，需开启浏览器数{1}'.format(ttl_driver_num, self.need_driver_num)
         else:
-            tip = '复制浏览器完成，请准备'
+            tip = '开启浏览器数{},复制浏览器完成，请准备'.format(ttl_driver_num)
+            self.is_check_browser = True
         self.driver_num.insert(END, tip)
         # return ttl_driver_num < self.need_driver_num
 
@@ -139,6 +150,13 @@ class MajorGiftGui:
             self.gift_num.delete(0, END)
         self.gift_num.insert(END, '1')
         self.is_ready = False
+        self.is_login_page = False
+        self.is_login = False
+        self.is_test = False
+        self.is_copy = False
+        self.driver = None
+        self.is_check_browser = False
+        self.driver_bank = []
         if self.room_id.get():
             self.set_tips('初始化成功,请点击登录界面')
         else:
@@ -146,6 +164,9 @@ class MajorGiftGui:
 
     # get login page
     def login(self):
+        if self.is_login_page:
+            self.set_tips('请不要重复请求登录界面')
+            return None
         options = webdriver.ChromeOptions()
         # options.add_argument('--headless')
         options.add_argument('--disable-gpu')
@@ -160,8 +181,14 @@ class MajorGiftGui:
             'vertical&bizParams=&notLoadSsoView=true&notKeepLogin=false&isMobile=false&pid=20160918PLF000695&rnd='
             '0.7248185733783202')
         self.set_tips('打开登录界面，请登录！登录后点击完成登录')
+        self.is_login_page = True
 
     def get_cookie(self):
+        if not self.is_login_page:
+            self.set_tips('请点击登录界面后再完成登录')
+            return None
+        if self.is_login:
+            return None
         cookies = self.driver.get_cookies()
         self.cookies_bank = []
         for ck in cookies:
@@ -178,8 +205,15 @@ class MajorGiftGui:
                              self.gift_order.get(),
                              self.gift_num.get()])
         self.set_tips('获取登录信息成功,请点击测试')
+        self.is_login = True
 
     def gift_test(self):
+        if not (self.is_login_page and self.is_login):
+            self.set_tips('请完成登录后再进行测试')
+            return None
+        if self.is_test:
+            self.set_tips('请不要重复测试')
+            return None
         if not self.cookies_bank:
             self.set_tips('请按完成登录,获取登录信息后再进行测试')
             return None
@@ -213,7 +247,7 @@ class MajorGiftGui:
                 self.driver_bank.append(self.driver)
         else:
             self.set_tips('请输入房间号')
-        self.set_driver_num()
+        self.is_test = True
 
     @staticmethod
     def set_gift_num(driver):
@@ -225,11 +259,16 @@ class MajorGiftGui:
         return not num_content == ''
 
     def anchor_room(self):
+        if not (self.is_login_page and self.is_login and self.is_test):
+            self.set_tips('请完成登录和测试后进行复制！')
+            return None
+        if self.is_copy:
+            self.set_tips('请不要重复复制')
+            return None
         if self.is_ready:
             self.set_tips('已经入准备状态,无法复制窗口')
             return None
         if self.room_id.get():
-            copy_bank = []
             # send copy signal to sub program
             for i in range(self.pool_num - 1):
                 self.qu.put('start copy')
@@ -244,6 +283,7 @@ class MajorGiftGui:
             #     task.join()
             sleep(2)
             self.set_tips('完成浏览器复制，点击浏览器开启情况，查看浏览器是否全部开启')
+            self.is_copy = True
         else:
             self.set_tips('请输入房间号')
 
@@ -261,7 +301,6 @@ class MajorGiftGui:
             '0.7248185733783202')
         for cookie in self.cookies_bank:
             driver.add_cookie(cookie)
-
         driver.get('https://v.laifeng.com/{}'.format(self.room_id.get()))
         sleep(1)
         while self.select_gift(driver):
@@ -300,6 +339,9 @@ class MajorGiftGui:
 
     # ready for send gift
     def ready_go(self):
+        if not (self.is_login_page and self.is_login and self.is_test and self.is_copy and self.is_check_browser):
+            self.set_tips('请完成前面的工作后再点击准备！')
+            return None
         self.is_ready = True
         # make sure qu is empty
         while 1:
@@ -381,7 +423,7 @@ class MajorGiftGui:
                     self.gift_order.get()
                 )
             )[0]
-            self.set_tips('所选礼物为：{}，若无误，请点击复制窗口，若有误，请重启软件'.format(gift_name))
+            self.set_tips('礼物为：{}，若无误，请点击复制窗口，若有误，请重启'.format(gift_name))
             return False
         else:
             return True
@@ -499,6 +541,7 @@ class SubHidePro:
         copy_bank = []
         for i in range(self.thread_num):
             copy_bank.append(threading.Thread(target=self.copy_driver))
+        self.wait_be_get()
         # wait signal to start
         while 1:
             if not self.queue.empty():
@@ -602,6 +645,28 @@ class SubHidePro:
         return class_content != 'gift selected'
 
 
+def get_multi_num(num_str):
+    rst_dict = {
+        '6': 3,
+        '8': 4,
+        '10': 5,
+        '12': 4,
+        '18': 6,
+    }
+    return rst_dict[num_str]
+
+
+def get_thread_num(num_str):
+    rst_dict = {
+        '6': 2,
+        '8': 2,
+        '10': 2,
+        '12': 3,
+        '18': 3,
+    }
+    return rst_dict[num_str]
+
+
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     hash_pw = ''
@@ -619,10 +684,12 @@ if __name__ == '__main__':
         hash_pw = md5.hexdigest()
         if hash_pw == really_pw:
             break
-    multi_num = input('请输入进程数，推荐为cpu核数-1:')
-    multi_num = int(multi_num)
-    threading_num = input('每个进程所需浏览器数（浏览器数x进程数=实际多开数）:')
-    threading_num = int(threading_num)
+    open_num = ''
+    open_list = ['6', '8', '10', '12', '18']
+    while open_num not in open_list:
+        open_num = input('请输入多开数（6/8/10/12/18）:')
+    multi_num = get_multi_num(open_num)
+    threading_num = get_thread_num(open_num)
     # test id
     # main
     main_pid = os.getpid()
