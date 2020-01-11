@@ -16,61 +16,45 @@ import getpass
 class MajorGiftGui:
 
     def __init__(self, dq, sq, pool_num, thread_num):
+        # driver  para
+        self.driver_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chromedriver.exe')
+        self.driver = None
+        self.driver_bank = []
         self.need_driver_num = pool_num * thread_num
+        self.other_driver_num = 0
+        # pool and thread para
         self.pool_num = pool_num
         self.thread_num = thread_num
-        self.driver = None
-        self.signal = threading.Event()
-        self.driver_bank = []
+        # cookie para
         self.cookies_bank = []
-        self.driver_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chromedriver.exe')
-        self.root = Tk()
-        self.root.geometry('460x240')
-        self.root.title('主程序名字长度不一样')
+        # signal for next
         self.is_ready = False
         self.is_login_page = False
         self.is_login = False
         self.is_test = False
         self.is_copy = False
         self.is_check_browser = False
+        # queue
         self.qu = dq
         self.sq = sq
-        self.other_driver_num = 0
+        # tk para
+        self.root = Tk()
+        self.root.geometry('460x240')
+        self.root.title('主程序名字长度不一样')
         lb1 = Label(self.root, text='填写信息，点击启动后开始自动刷取')
         lb1.place(relx=0.1, rely=0.01, relwidth=0.8, relheight=0.1)
-
         lb20 = Label(self.root, text='主播房间号')
         lb20.place(relx=0.01, rely=0.12, relwidth=0.2, relheight=0.1)
         self.room_id = Entry(self.root)
         self.room_id.place(relx=0.23, rely=0.12, relwidth=0.7, relheight=0.1)
-        # lb21 = Label(self.root, text='多开数')
-        # lb21.place(relx=0.53, rely=0.12, relwidth=0.15, relheight=0.1)
-        # self.thread_num = Entry(self.root)
-        # self.thread_num.place(relx=0.68, rely=0.12, relwidth=0.3, relheight=0.1)
-
         lb30 = Label(self.root, text='刷第几个礼物')
         lb30.place(relx=0.01, rely=0.23, relwidth=0.2, relheight=0.1)
         self.gift_order = Entry(self.root)
         self.gift_order.place(relx=0.23, rely=0.23, relwidth=0.7, relheight=0.1)
-        # lb31 = Label(self.root, text='刷几次')
-        # lb31.place(relx=0.53, rely=0.23, relwidth=0.15, relheight=0.1)
-        # self.gift_time = Entry(self.root)
-        # self.gift_time.place(relx=0.68, rely=0.23, relwidth=0.3, relheight=0.1)
-
         lb4 = Label(self.root, text='每次刷几个')
         lb4.place(relx=0.01, rely=0.34, relwidth=0.22, relheight=0.1)
         self.gift_num = Entry(self.root)
         self.gift_num.place(relx=0.23, rely=0.34, relwidth=0.7, relheight=0.1)
-        lb5 = Button(self.root, text='浏览器开启情况', activebackground='blue', command=self.set_driver_num)
-        lb5.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
-        self.driver_num = Entry(self.root)
-        self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
-        # lb6 = Label(self.root, text='刷手密码')
-        # lb6.place(relx=0.01, rely=0.56, relwidth=0.2, relheight=0.1)
-        # self.password = Entry(self.root)
-        # self.password.place(relx=0.23, rely=0.56, relwidth=0.3, relheight=0.1)
-        # btn9 = Button(self.root, text='一键退出', command=self.quit_driver)
-        # btn9.place(relx=0.6, rely=0.2, relwidth=0.3, relheight=0.3)
         btn1 = Button(self.root, text='初始化', activebackground='blue', command=self.init_para)
         btn1.place(relx=0.0325, rely=0.67, relwidth=0.2, relheight=0.1)
         btn2 = Button(self.root, text='登录界面', activebackground='blue', command=self.login)
@@ -81,15 +65,12 @@ class MajorGiftGui:
         btn4.place(relx=0.78, rely=0.67, relwidth=0.2, relheight=0.1)
         btn5 = Button(self.root, text='复制窗口', activebackground='blue', command=self.anchor_room)
         btn5.place(relx=0.0325, rely=0.78, relwidth=0.2, relheight=0.1)
-        btn6 = Button(self.root, text='准备', activebackground='blue', command=self.ready_go)
-        btn6.place(relx=0.28, rely=0.78, relwidth=0.2, relheight=0.1)
-        # btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
-        # btn7.place(relx=0.52, rely=0.78, relwidth=0.2, relheight=0.1)
-        # btn8 = Button(self.root, text='退出一个浏览器', activebackground='blue', command=self.quit_one_driver)
-        # btn8.place(relx=0.78, rely=0.78, relwidth=0.2, relheight=0.1)
-        # btn_convenience = Button(self.root, text='快捷键测试')
-        # btn_convenience.bind_all('<KeyPress>', self.event_handler)
-        # btn_convenience.place()
+        btn6 = Button(self.root, text='浏览器开启情况', activebackground='blue', command=self.set_driver_num)
+        btn6.place(relx=0.01, rely=0.45, relwidth=0.22, relheight=0.1)
+        self.driver_num = Entry(self.root)
+        self.driver_num.place(relx=0.23, rely=0.45, relwidth=0.7, relheight=0.1)
+        btn7 = Button(self.root, text='准备', activebackground='blue', command=self.ready_go)
+        btn7.place(relx=0.28, rely=0.78, relwidth=0.2, relheight=0.1)
         lb7 = Label(self.root, text='提示')
         lb7.place(relx=0.02, rely=0.89, relwidth=0.1, relheight=0.1)
         self.tip = Entry(self.root)
@@ -108,35 +89,6 @@ class MajorGiftGui:
         if self.tip.get():
             self.tip.delete(0, END)
         self.tip.insert(END, tip)
-
-    # driver num
-    def set_driver_num(self):
-        if not (self.is_login_page and self.is_login and self.is_test and self.is_copy):
-            return None
-        if self.is_check_browser:
-            return None
-        if self.is_ready:
-            self.set_tips('已经入准备状态,无法获取信息')
-            return None
-        elif self.qu.empty():
-            return len(self.driver_bank) + self.other_driver_num
-        else:
-            driver_num_list = []
-            while not self.qu.empty():
-                driver_num_list.append(self.qu.get())
-            driver_num_list.append(len(self.driver_bank))
-            driver_num_list.append(self.other_driver_num)
-            print('dnl', driver_num_list)
-            ttl_driver_num = reduce(lambda x, y: x + y, driver_num_list)
-        if self.driver_num.get():
-            self.driver_num.delete(0, END)
-        if ttl_driver_num < self.need_driver_num:
-            tip = '已开启浏览器数：{0}，需开启浏览器数{1}'.format(ttl_driver_num, self.need_driver_num)
-        else:
-            tip = '开启浏览器数{},复制浏览器完成，请准备'.format(ttl_driver_num)
-            self.is_check_browser = True
-        self.driver_num.insert(END, tip)
-        # return ttl_driver_num < self.need_driver_num
 
     def init_para(self):
         self.driver_bank = []
@@ -327,15 +279,36 @@ class MajorGiftGui:
         except Exception:
             pass
         self.driver_bank.append(driver)
-        self.set_driver_num()
 
-    def quit_one_driver(self):
-        if len(self.driver_bank) == 0:
-            self.set_tips('无浏览器可退出！')
+    # driver num
+    def set_driver_num(self):
+        if not (self.is_login_page and self.is_login and self.is_test and self.is_copy):
+            return None
+        if self.is_check_browser:
+            return None
+        if self.is_ready:
+            self.set_tips('已经入准备状态,无法获取信息')
+            return None
+        elif self.qu.empty():
+            return len(self.driver_bank) + self.other_driver_num
         else:
-            self.driver_bank[-1].quit()
-            self.driver_bank.pop()
-            self.set_driver_num()
+            driver_num_list = []
+            for i in range(self.need_driver_num - len(self.driver_bank) - self.other_driver_num):
+                if self.qu.empty():
+                    break
+                else:
+                    driver_num_list.append(self.qu.get())
+            other_driver_num = reduce(lambda x, y: x + y, driver_num_list)
+            self.other_driver_num += other_driver_num
+            ttl_driver_num = self.other_driver_num + len(self.driver_bank)
+        if self.driver_num.get():
+            self.driver_num.delete(0, END)
+        if ttl_driver_num < self.need_driver_num:
+            tip = '已开启浏览器数：{0}，需开启浏览器数{1}'.format(ttl_driver_num, self.need_driver_num)
+        else:
+            tip = '开启浏览器数{},复制浏览器完成，请准备'.format(ttl_driver_num)
+            self.is_check_browser = True
+        self.driver_num.insert(END, tip)
 
     # ready for send gift
     def ready_go(self):
@@ -366,7 +339,6 @@ class MajorGiftGui:
         send_btn = driver.find_element_by_xpath('//*[@id="LF-chat-gift"]/div/div/div/div[2]/div[3]/a')
         while 1:
             while not self.sq.empty():
-                # self.signal.wait()
                 send_btn.click()
 
     def stop_signal(self):
@@ -378,24 +350,6 @@ class MajorGiftGui:
         if self.sq.empty():
             self.sq.put('start')
         self.set_tips('开始送礼物')
-
-    def alert_signal(self):
-        if self.signal.is_set():
-            self.signal.clear()
-        else:
-            self.signal.set()
-
-    def send_star(self, driver):
-        driver.find_element_by_xpath(
-            '/html/body/div[1]/div[2]/div[3]/div[3]/div/div/div/div[2]/div[1]/div'
-        ).click()
-        star = driver.find_element_by_xpath(
-                '/html/body/div[1]/div[2]/div[3]/div[3]/div/div/div/div[2]/div[1]/ul/li[2]'
-            )
-        while 1:
-            star.click()
-            self.signal.wait()
-            print(1)
 
     def send_one(self):
         if self.driver_bank:
@@ -442,7 +396,6 @@ class MajorGiftGui:
 class ConGui(MajorGiftGui):
 
     def __init__(self, dq, sq, main_id, pool_num):
-        self.signal = threading.Event()
         self.root = Tk()
         self.root.geometry('400x200')
         self.root.title('控制台大小不一样')
@@ -491,30 +444,6 @@ class ConGui(MajorGiftGui):
             self.set_tips('仍有{}个进程准备中'.format(rst))
         else:
             self.set_tips('准备完成，可以开始')
-
-    # def start_top(self):
-    #     self.signal.set()
-    #     task_bank = [threading.Thread(target=self.set_top), ]
-    #     for task in task_bank:
-    #         task.start()
-    #     self.set_tips('窗口强制置顶')
-    #
-    # def set_top(self):
-    #     while 1:
-    #         print(self.root.wm_focusmodel())
-    #         self.signal.wait()
-    #         if self.root.wm_focusmodel() != 'passive':
-    #             self.root.wm_focusmodel('passive')
-    #             print(2)
-    #         sleep(0.1)
-    #
-    # def alert_signal(self):
-    #     if self.signal.is_set():
-    #         self.signal.clear()
-    #         self.set_tips('窗口取消强制置顶')
-    #     else:
-    #         self.signal.set()
-    #         self.set_tips('窗口强制置顶')
 
 
 class SubHidePro:
@@ -651,6 +580,7 @@ def get_multi_num(num_str):
         '8': 4,
         '10': 5,
         '12': 4,
+        '14': 7,
         '18': 6,
     }
     return rst_dict[num_str]
@@ -662,6 +592,7 @@ def get_thread_num(num_str):
         '8': 2,
         '10': 2,
         '12': 3,
+        '14': 2,
         '18': 3,
     }
     return rst_dict[num_str]
@@ -669,25 +600,25 @@ def get_thread_num(num_str):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    hash_pw = ''
-    try:
-        with open('./password', 'r') as fh:
-            really_pw = fh.read()
-    except:
-        print('请放置password文件至程序同级目录')
-        quit()
-    while True:
-        pw = getpass.getpass('请输入密码：')
-        pw = '{}cms'.format(pw)
-        md5 = hashlib.md5()
-        md5.update(pw.encode('utf-8'))
-        hash_pw = md5.hexdigest()
-        if hash_pw == really_pw:
-            break
+    # hash_pw = ''
+    # try:
+    #     with open('./password', 'r') as fh:
+    #         really_pw = fh.read()
+    # except:
+    #     print('请放置password文件至程序同级目录')
+    #     quit()
+    # while True:
+    #     pw = getpass.getpass('请输入密码：')
+    #     pw = '{}cms'.format(pw)
+    #     md5 = hashlib.md5()
+    #     md5.update(pw.encode('utf-8'))
+    #     hash_pw = md5.hexdigest()
+    #     if hash_pw == really_pw:
+    #         break
     open_num = ''
-    open_list = ['6', '8', '10', '12', '18']
+    open_list = ['6', '8', '10', '12', '14', '18']
     while open_num not in open_list:
-        open_num = input('请输入多开数（6/8/10/12/18）:')
+        open_num = input('请输入多开数（6/8/10/12/14/18）:')
     multi_num = get_multi_num(open_num)
     threading_num = get_thread_num(open_num)
     # test id
