@@ -1,3 +1,4 @@
+# _*_ coding: utf-8 _*_
 import copy
 import hashlib
 import multiprocessing
@@ -11,6 +12,83 @@ from lxml import etree
 from selenium.webdriver.common.keys import Keys
 from multiprocessing import Manager, Pool
 import getpass
+import win32con
+import ctypes
+import ctypes.wintypes
+
+
+class HotKey(threading.Thread):
+
+    def __init__(self):
+        """
+        super the init of Thread and init the para using later
+        hot_key_id_dict: key is the hot key id,
+                         value is info about hot key using to register
+        hot_func_dict: key is the hot key id, value records the function that be executed when hot key was pressed
+        """
+        super().__init__()
+        self.user32 = ctypes.windll.user32
+        self.hot_key_dict = {}
+        self.hot_func_dict = {}
+
+    def register_key(self, hwnd=None, flag_id=0, fn_key=0, vk_ey=None, func=None):
+        """
+        get info that uses to register hot key, record in hot_key_id_dict and set its values False
+        if the id have been in hot_key_id_dict, the hot key would be override
+        :param hwnd: Handle who response when hot key was pressed
+        :param flag_id: hot key id which need to be recorded in hot_key_id_dict.keys()
+        :param fn_key: like ctrl and alt
+        :param vk_ey: normal key like a ~ z
+        :param func: the function executed when hot key pressed
+        """
+        if vk_ey and func:
+            self.hot_key_dict[flag_id] = [hwnd, flag_id, fn_key, vk_ey, False]
+            self.hot_func_dict[flag_id] = func
+
+    def run(self):
+        """
+        specify activity by override run();
+        as written in Thread, when start(), run() would be executed
+        content: when hot_key pressed, set start signal
+        tips: register master in run, maybe hot key only be useful in on thread
+        """
+        for values in self.hot_key_dict.values():
+            rst = self.user32.RegisterHotKey(values[0], values[1], values[2], values[3])
+        self.controller()
+        try:
+            msg = ctypes.wintypes.MSG()
+            while 1:
+                if self.user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
+                    if msg.message == win32con.WM_HOTKEY:
+                        if msg.wParam in self.hot_key_dict.keys():
+                            self.hot_key_dict[msg.wParam][-1] = True
+                    self.user32.TranslateMessage(ctypes.byref(msg))
+                    self.user32.DispatchMessageA(ctypes.byref(msg))
+        finally:
+            for i in self.hot_key_dict.keys():
+                self.user32.UnregisterHotKey(None, i)
+
+    def controller(self):
+        """
+        wait signal to start function
+        """
+        self.thread_it(self.inner)
+
+    def inner(self):
+        """
+        when  hot_key_id_dict[id] = True, function start
+        """
+        while 1:
+            for key, value in self.hot_func_dict.items():
+                if self.hot_key_dict[key][-1]:
+                    self.thread_it(value)
+                    self.hot_key_dict[key][-1] = False
+
+    @staticmethod
+    def thread_it(func, *args):
+        t = threading.Thread(target=func, args=args)
+        t.setDaemon(True)
+        t.start()
 
 
 class MajorGiftGui:
@@ -241,7 +319,7 @@ class MajorGiftGui:
 
     def copy_driver(self):
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        # options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--no-sandbox')
@@ -396,20 +474,24 @@ class MajorGiftGui:
 class ConGui(MajorGiftGui):
 
     def __init__(self, dq, sq, main_id, pool_num):
-        self.root = Tk()
-        self.root.geometry('400x200')
-        self.root.title('控制台大小不一样')
         self.qu = dq
         self.sq = sq
         self.main_id = main_id
         self.pid_list = []
         self.pool_num = pool_num
+        self.is_hot = False
+        # register hot key
+        self.hk = HotKey()
+        self.hk.register_key(None, 1805, 0, win32con.VK_LEFT, self.start_signal)
+        self.hk.register_key(None, 1806, 0, win32con.VK_RIGHT, self.stop_signal)
+        # tk para
+        self.root = Tk()
+        self.root.geometry('400x200')
+        self.root.title('控制台大小不一样')
         lb1 = Label(self.root, text='完成主程序以及副程序的准备后，\n将此程序置顶')
         lb1.place(relx=0.1, rely=0.01, relwidth=0.8, relheight=0.2)
-        # btn7 = Button(self.root, text='开始/继续←', command=self.start_signal)
         btn7 = Label(self.root, text='开始/继续←')
         btn7.place(relx=0.1, rely=0.3, relwidth=0.4, relheight=0.2)
-        # btn8 = Button(self.root, text='暂停→', command=self.stop_signal)
         btn8 = Label(self.root, text='暂停→')
         btn8.place(relx=0.55, rely=0.3, relwidth=0.4, relheight=0.2)
         btn_convenience = Button(self.root, text='快捷键测试')
@@ -419,18 +501,22 @@ class ConGui(MajorGiftGui):
         lb7.place(relx=0.02, rely=0.55, relwidth=0.1, relheight=0.15)
         self.tip = Entry(self.root)
         self.tip.place(relx=0.13, rely=0.55, relwidth=0.8, relheight=0.15)
-        btn_ready = Button(self.root, text='查看准备状态', command=self.get_ready_status)
-        btn_ready.place(relx=0.1, rely=0.75, relwidth=0.3, relheight=0.15)
-        # btn_start = Button(self.root, text='强制置顶功能开启', command=self.start_top)
-        # btn_start.place(relx=0.1, rely=0.75, relwidth=0.15, relheight=0.15)
-        # btn_end = Button(self.root, text='暂停/继续强制置顶', command=self.alert_signal)
-        # btn_end.place(relx=0.3, rely=0.75, relwidth=0.15, relheight=0.15)
+        btn_ready = Button(self.root, text='准备状态', command=self.get_ready_status)
+        btn_ready.place(relx=0.1, rely=0.75, relwidth=0.2, relheight=0.15)
+        btn_ready = Button(self.root, text='开启快捷键', command=self.alert_hot_key_status)
+        btn_ready.place(relx=0.3, rely=0.75, relwidth=0.3, relheight=0.15)
         btn_quit = Button(self.root, text='一键退出', command=self.quit_all)
         btn_quit.place(relx=0.8, rely=0.75, relwidth=0.15, relheight=0.15)
-        # self.root.wm_attributes('-topmost', 1)
+        self.root.wm_attributes('-topmost', 1)
+        self.root.protocol('WM_DELETE_WINDOW', self.quit_all)
         self.root.mainloop()
 
+    def alert_hot_key_status(self):
+        self.hk.start()
+        self.set_tips('开启快捷键成功')
+
     def quit_all(self):
+        print('one key quit')
         command = 'taskkill /F /IM chrome.exe'
         os.system(command)
         command_kill = 'taskkill /pid {}  -t  -f'.format(self.main_id)
@@ -521,7 +607,7 @@ class SubHidePro:
 
     def copy_driver(self):
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        # options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--no-sandbox')
@@ -600,21 +686,21 @@ def get_thread_num(num_str):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    # hash_pw = ''
-    # try:
-    #     with open('./password', 'r') as fh:
-    #         really_pw = fh.read()
-    # except:
-    #     print('请放置password文件至程序同级目录')
-    #     quit()
-    # while True:
-    #     pw = getpass.getpass('请输入密码：')
-    #     pw = '{}cms'.format(pw)
-    #     md5 = hashlib.md5()
-    #     md5.update(pw.encode('utf-8'))
-    #     hash_pw = md5.hexdigest()
-    #     if hash_pw == really_pw:
-    #         break
+    hash_pw = ''
+    try:
+        with open('./password', 'r') as fh:
+            really_pw = fh.read()
+    except:
+        print('请放置password文件至程序同级目录')
+        quit()
+    while True:
+        pw = getpass.getpass('请输入密码：')
+        pw = '{}cms'.format(pw)
+        md5 = hashlib.md5()
+        md5.update(pw.encode('utf-8'))
+        hash_pw = md5.hexdigest()
+        if hash_pw == really_pw:
+            break
     open_num = ''
     open_list = ['6', '8', '10', '12', '14', '18']
     while open_num not in open_list:
