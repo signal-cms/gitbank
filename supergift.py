@@ -275,9 +275,9 @@ class MajorGiftGui:
                 pass
             if not self.driver_bank:
                 self.driver_bank.append(self.driver)
+            self.is_test = True
         else:
             self.set_tips('请输入房间号')
-        self.is_test = True
 
     @staticmethod
     def set_gift_num(driver):
@@ -319,7 +319,7 @@ class MajorGiftGui:
 
     def copy_driver(self):
         options = webdriver.ChromeOptions()
-        # options.add_argument('--headless')
+        options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--no-sandbox')
@@ -607,7 +607,7 @@ class SubHidePro:
 
     def copy_driver(self):
         options = webdriver.ChromeOptions()
-        # options.add_argument('--headless')
+        options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--no-sandbox')
@@ -686,21 +686,21 @@ def get_thread_num(num_str):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    hash_pw = ''
-    try:
-        with open('./password', 'r') as fh:
-            really_pw = fh.read()
-    except:
-        print('请放置password文件至程序同级目录')
-        quit()
-    while True:
-        pw = getpass.getpass('请输入密码：')
-        pw = '{}cms'.format(pw)
-        md5 = hashlib.md5()
-        md5.update(pw.encode('utf-8'))
-        hash_pw = md5.hexdigest()
-        if hash_pw == really_pw:
-            break
+    # hash_pw = ''
+    # try:
+    #     with open('./password', 'r') as fh:
+    #         really_pw = fh.read()
+    # except:
+    #     print('请放置password文件至程序同级目录')
+    #     quit()
+    # while True:
+    #     pw = getpass.getpass('请输入密码：')
+    #     pw = '{}cms'.format(pw)
+    #     md5 = hashlib.md5()
+    #     md5.update(pw.encode('utf-8'))
+    #     hash_pw = md5.hexdigest()
+    #     if hash_pw == really_pw:
+    #         break
     open_num = ''
     open_list = ['6', '8', '10', '12', '14', '18']
     while open_num not in open_list:
